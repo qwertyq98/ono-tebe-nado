@@ -1,3 +1,5 @@
+import { LotItem } from "../components/LotItem";
+
 export type LotStatus = 'wait' | 'active' | 'closed';
 
 export interface IAuction {
@@ -34,6 +36,14 @@ export type FormErrors = Partial<Record<keyof IOrder, string>>;
 export interface IBid {
     price: number
 }
+
+export interface IAppState {
+    catalog: ILot[];
+}
+
+export type CatalogChangeEvent = {
+    catalog: LotItem[]
+};
 
 export interface IOrderResult {
     id: string;
