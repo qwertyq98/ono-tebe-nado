@@ -56,5 +56,3 @@ api.getLotList()
     .catch(err => {
         console.error(err);
     });
-
-

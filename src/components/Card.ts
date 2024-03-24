@@ -29,6 +29,10 @@ export class Card<T> extends Component<ICard<T>> {
         this.setText(this._title, value);
     }
 
+    set description(value: string) {
+        this.setText(this._description, value);
+    }
+
     set image(value: string) {
         this.setImage(this._image, value, this.title)
     }
