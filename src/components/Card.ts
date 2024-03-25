@@ -3,6 +3,10 @@ import {LotStatus} from "../types";
 import {bem, ensureElement} from "../utils/utils";
 import clsx from "clsx";
 
+interface ICardActions {
+    onClick: (event: MouseEvent) => void;
+}
+
 export interface ICard<T> {
     title: string;
     description?: string | string[];
@@ -16,13 +20,21 @@ export class Card<T> extends Component<ICard<T>> {
     protected _description?: HTMLElement;
     protected _button?: HTMLButtonElement;
 
-    constructor(protected blockName: string, container: HTMLElement) {
+    constructor(protected blockName: string, container: HTMLElement, actions?: ICardActions) {
         super(container);
 
         this._title = ensureElement<HTMLElement>(`.${blockName}__title`, container);
         this._image = ensureElement<HTMLImageElement>(`.${blockName}__image`, container);
         this._button = container.querySelector(`.${blockName}__button`);
         this._description = container.querySelector(`.${blockName}__description`);
+
+        if (actions?.onClick) {
+            if (this._button) {
+                this._button.addEventListener('click', actions.onClick);
+            } else {
+                container.addEventListener('click', actions.onClick);
+            }
+        }
     }
 
     set title(value: string) {
@@ -46,8 +58,8 @@ export type CatalogItemStatus = {
 export class CatalogItem extends Card<CatalogItemStatus> {
     protected _status: HTMLElement;
 
-    constructor(container: HTMLElement) {
-        super('card', container);
+    constructor(container: HTMLElement, actions?: ICardActions) {
+        super('card', container, actions);
         this._status = ensureElement<HTMLElement>(`.card__status`, container);
     }
 
@@ -57,5 +69,18 @@ export class CatalogItem extends Card<CatalogItemStatus> {
             [bem(this.blockName, 'status', 'active').name]: status === 'active',
             [bem(this.blockName, 'status', 'closed').name]: status === 'closed'
         });
+    }
+}
+
+export class AuctionItem extends Card<HTMLElement> {
+    protected _status: HTMLElement;
+
+    constructor(container: HTMLElement, actions?: ICardActions) {
+        super('lot', container, actions);
+        this._status = ensureElement<HTMLElement>(`.lot__status`, container);
+    }
+
+    set status(content: HTMLElement) {
+        this._status.replaceWith(content);
     }
 }

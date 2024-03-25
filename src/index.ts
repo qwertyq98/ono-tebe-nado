@@ -3,11 +3,12 @@ import './scss/styles.scss';
 import {AuctionAPI} from "./components/AuctionAPI";
 import {API_URL, CDN_URL} from "./utils/constants";
 import {EventEmitter} from "./components/base/events";
-import { AppState } from './components/LotItem';
+import { AppState, LotItem } from './components/LotItem';
 import { CatalogChangeEvent } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
-import { CatalogItem } from './components/Card';
+import { AuctionItem, CatalogItem } from './components/Card';
 import { Page } from './components/Page';
+import { Modal } from './components/common/Modal';
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -19,13 +20,14 @@ events.onAll(({ eventName, data }) => {
 
 // Все шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card');
-
+const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#preview');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
 
 // Глобальные контейнеры
 const page = new Page(document.body, events);
+const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
 // Переиспользуемые части интерфейса
 
@@ -35,7 +37,9 @@ const page = new Page(document.body, events);
 
 events.on<CatalogChangeEvent>('items:changed', () => {
     page.catalog = appData.catalog.map(item => {
-        const card = new CatalogItem(cloneTemplate(cardCatalogTemplate));
+        const card = new CatalogItem(cloneTemplate(cardCatalogTemplate), {
+            onClick: () => events.emit('card:select', item)
+        });
         return card.render({
             title: item.title,
             image: item.image,
@@ -49,6 +53,50 @@ events.on<CatalogChangeEvent>('items:changed', () => {
     // page.counter = appData.getClosedLots().length;
 });
 
+// Открыть лот
+events.on('card:select', (item: LotItem) => {
+    appData.setPreview(item);
+});
+
+
+// Изменен открытый выбранный лот
+events.on('preview:changed', (item: LotItem) => {
+    const showItem = (item: LotItem) => {
+        const card = new AuctionItem(cloneTemplate(cardPreviewTemplate));
+
+        modal.render({
+            content: card.render({
+                title: item.title,
+                image: item.image,
+                description: item.description.split("\n"),
+            })
+        });
+    };
+
+    if (item) {
+        api.getLotItem(item.id)
+            .then((result) => {
+                item.description = result.description;
+                item.history = result.history;
+                showItem(item);
+            })
+            .catch((err) => {
+                console.error(err);
+            })
+    } else {
+        modal.close();
+    }
+});
+
+// Блокируем прокрутку страницы если открыта модалка
+events.on('modal:open', () => {
+    page.locked = true;
+});
+
+// ... и разблокируем
+events.on('modal:close', () => {
+    page.locked = false;
+});
 
 // Получаем лоты с сервера
 api.getLotList()

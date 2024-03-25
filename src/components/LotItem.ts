@@ -11,6 +11,8 @@ export class LotItem extends Model<ILot> {
   price: number;
   status: LotStatus;
   title: string;
+  description: string;
+  history: number[];
 
   get statusLabel(): string {
     switch (this.status) {
@@ -28,9 +30,15 @@ export class LotItem extends Model<ILot> {
 
 export class AppState extends Model<IAppState> {
   catalog: LotItem[];
+  preview: string | null;
 
   setCatalog(items: ILot[]) {
     this.catalog = items.map(item => new LotItem(item, this.events));
     this.emitChanges('items:changed', { catalog: this.catalog });
+  }
+
+  setPreview(item: LotItem) {
+    this.preview = item.id;
+    this.emitChanges('preview:changed', item);
   }
 }
