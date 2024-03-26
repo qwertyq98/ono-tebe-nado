@@ -6,7 +6,7 @@ import {EventEmitter} from "./components/base/events";
 import { AppState, LotItem } from './components/LotItem';
 import { CatalogChangeEvent } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
-import { AuctionItem, CatalogItem } from './components/Card';
+import { Auction, AuctionItem, CatalogItem } from './components/Card';
 import { Page } from './components/Page';
 import { Modal } from './components/common/Modal';
 
@@ -21,6 +21,7 @@ events.onAll(({ eventName, data }) => {
 // Все шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#preview');
+const auctionTemplate = ensureElement<HTMLTemplateElement>('#auction');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -63,12 +64,31 @@ events.on('card:select', (item: LotItem) => {
 events.on('preview:changed', (item: LotItem) => {
     const showItem = (item: LotItem) => {
         const card = new AuctionItem(cloneTemplate(cardPreviewTemplate));
+        const auction = new Auction(cloneTemplate(auctionTemplate), {
+            onSubmit: (price) => {
+                item.placeBid(price);
+                auction.render({
+                    status: item.status,
+                    time: item.timeStatus,
+                    label: item.auctionStatus,
+                    nextBid: item.nextBid,
+                    history: item.history
+                });
+            }
+        });
 
         modal.render({
             content: card.render({
                 title: item.title,
                 image: item.image,
                 description: item.description.split("\n"),
+                status: auction.render({
+                    status: item.status,
+                    time: item.timeStatus,
+                    label: item.auctionStatus,
+                    nextBid: item.nextBid,
+                    history: item.history
+                })
             })
         });
     };
