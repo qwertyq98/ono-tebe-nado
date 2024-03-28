@@ -27,7 +27,7 @@ export class LotItem extends Model<ILot> {
     this.myLastBid = price;
 
     if (price > (this.minPrice * 10)) {
-        this.status = 'closed';
+      this.status = 'closed';
     }
     this.emitChanges('auction:changed', { id: this.id, price });
   }

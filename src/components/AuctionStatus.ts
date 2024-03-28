@@ -1,7 +1,7 @@
 import { ensureElement } from "../utils/utils";
 import { Card, ICardActions } from "./Card";
 
-export class AuctionItem extends Card<HTMLElement> {
+export class AuctionStatus extends Card<HTMLElement> {
     protected _status: HTMLElement;
 
     constructor(container: HTMLElement, actions?: ICardActions) {

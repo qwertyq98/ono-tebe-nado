@@ -10,8 +10,8 @@ import { Page } from './components/Page';
 import { Modal } from './components/common/Modal';
 import { AppState } from './components/AppState';
 import { CatalogItem } from './components/CatalogItem';
-import { AuctionItem } from './components/AuctionItem';
 import { Auction } from './components/Auction';
+import { AuctionStatus } from './components/AuctionStatus';
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -66,7 +66,7 @@ events.on('card:select', (item: LotItem) => {
 // Изменен открытый выбранный лот
 events.on('preview:changed', (item: LotItem) => {
     const showItem = (item: LotItem) => {
-        const card = new AuctionItem(cloneTemplate(cardPreviewTemplate));
+        const card = new AuctionStatus(cloneTemplate(cardPreviewTemplate));
         const auction = new Auction(cloneTemplate(auctionTemplate), {
             onSubmit: (price) => {
                 item.placeBid(price);
