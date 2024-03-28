@@ -3,12 +3,15 @@ import './scss/styles.scss';
 import {AuctionAPI} from "./components/AuctionAPI";
 import {API_URL, CDN_URL} from "./utils/constants";
 import {EventEmitter} from "./components/base/events";
-import { AppState, LotItem } from './components/LotItem';
+import { LotItem } from './components/LotItem';
 import { CatalogChangeEvent } from './types';
 import { cloneTemplate, ensureElement } from './utils/utils';
-import { Auction, AuctionItem, CatalogItem } from './components/Card';
 import { Page } from './components/Page';
 import { Modal } from './components/common/Modal';
+import { AppState } from './components/AppState';
+import { CatalogItem } from './components/CatalogItem';
+import { AuctionItem } from './components/AuctionItem';
+import { Auction } from './components/Auction';
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
