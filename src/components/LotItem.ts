@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { IAppState, ILot, LotStatus } from "../types";
+import { ILot, LotStatus } from "../types";
 import { Model } from "./base/Model";
 import { formatNumber } from "../utils/utils";
 
@@ -75,20 +75,5 @@ export class LotItem extends Model<ILot> {
 
   get nextBid(): number {
     return Math.floor(this.price * 1.1);
-  }
-}
-
-export class AppState extends Model<IAppState> {
-  catalog: LotItem[];
-  preview: string | null;
-
-  setCatalog(items: ILot[]) {
-    this.catalog = items.map(item => new LotItem(item, this.events));
-    this.emitChanges('items:changed', { catalog: this.catalog });
-  }
-
-  setPreview(item: LotItem) {
-    this.preview = item.id;
-    this.emitChanges('preview:changed', item);
   }
 }
