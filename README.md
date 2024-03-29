@@ -40,3 +40,7 @@ npm run build
 ```
 yarn build
 ```
+
+## [Макет](https://www.figma.com/file/qnH5tALa9F1emPaWzyfrRQ/%D0%9E%D0%BD%D0%BE-%D1%82%D0%B5%D0%B1%D0%B5-%D0%BD%D0%B0%D0%B4%D0%BE?type=design&node-id=1-128&mode=design&t=jZi41UEue0FYhTle-0)
+
+запросы на https://onotebenado-api.nomoreparties.co

@@ -5,13 +5,16 @@ import {API_URL, CDN_URL} from "./utils/constants";
 import {EventEmitter} from "./components/base/events";
 import { LotItem } from './components/LotItem';
 import { CatalogChangeEvent } from './types';
-import { cloneTemplate, ensureElement } from './utils/utils';
+import { cloneTemplate, createElement, ensureElement } from './utils/utils';
 import { Page } from './components/Page';
 import { Modal } from './components/common/Modal';
 import { AppState } from './components/AppState';
 import { CatalogItem } from './components/CatalogItem';
 import { Auction } from './components/Auction';
 import { AuctionStatus } from './components/AuctionStatus';
+import { BidItem } from './components/BidItem';
+import { Basket } from './components/Basket';
+import { Tabs } from './components/Tabs';
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -25,6 +28,11 @@ events.onAll(({ eventName, data }) => {
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#preview');
 const auctionTemplate = ensureElement<HTMLTemplateElement>('#auction');
+const bidsTemplate = ensureElement<HTMLTemplateElement>('#bids');
+const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#bid');
+const tabsTemplate = ensureElement<HTMLTemplateElement>('#tabs');
+const soldTemplate = ensureElement<HTMLTemplateElement>('#sold');
+const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -35,6 +43,14 @@ const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
 
 // Переиспользуемые части интерфейса
 
+const bids = new Basket(cloneTemplate(bidsTemplate), events);
+const basket = new Basket(cloneTemplate(basketTemplate), events);
+const tabs = new Tabs(cloneTemplate(tabsTemplate), {
+    onClick: (name) => {
+        if (name === 'closed') events.emit('basket:open');
+        else events.emit('bids:open');
+    }
+});
 
 // Дальше идет бизнес-логика
 // Поймали событие, сделали что нужно
@@ -54,7 +70,7 @@ events.on<CatalogChangeEvent>('items:changed', () => {
             },
         });
     });
-    // page.counter = appData.getClosedLots().length;
+    page.counter = appData.getClosedLots().length;
 });
 
 // Открыть лот
@@ -62,6 +78,29 @@ events.on('card:select', (item: LotItem) => {
     appData.setPreview(item);
 });
 
+// Открыть активные лоты
+events.on('bids:open', () => {
+    modal.render({
+        content: createElement<HTMLElement>('div', {}, [
+            tabs.render({
+                selected: 'active'
+            }),
+            bids.render()
+        ])
+    });
+});
+
+// Открыть закрытые лоты
+events.on('basket:open', () => {
+    modal.render({
+        content: createElement<HTMLElement>('div', {}, [
+            tabs.render({
+                selected: 'closed'
+            }),
+            basket.render()
+        ])
+    });
+});
 
 // Изменен открытый выбранный лот
 events.on('preview:changed', (item: LotItem) => {
@@ -110,6 +149,45 @@ events.on('preview:changed', (item: LotItem) => {
         modal.close();
     }
 });
+
+// Изменения в лоте, но лучше все пересчитать
+events.on('auction:changed', () => {
+    page.counter = appData.getClosedLots().length;
+    bids.items = appData.getActiveLots().map(item => {
+        const card = new BidItem(cloneTemplate(cardBasketTemplate), {
+            onClick: () => events.emit('preview:changed', item)
+        });
+        return card.render({
+            title: item.title,
+            image: item.image,
+            status: {
+                amount: item.price,
+                status: item.isMyBid
+            }
+        });
+    });
+    const total = 0;
+    basket.items = appData.getClosedLots().map(item => {
+        const card = new BidItem(cloneTemplate(soldTemplate), {
+            onClick: (event) => {
+                const checkbox = event.target as HTMLInputElement;
+                appData.toggleOrderedLot(item.id, checkbox.checked);
+                basket.total = appData.getTotal();
+                basket.selected = appData.order.items;
+            }
+        });
+        return card.render({
+            title: item.title,
+            image: item.image,
+            status: {
+                amount: item.price,
+                status: item.isMyBid
+            }
+        });
+    });
+    basket.selected = appData.order.items;
+    basket.total = total;
+})
 
 // Блокируем прокрутку страницы если открыта модалка
 events.on('modal:open', () => {
