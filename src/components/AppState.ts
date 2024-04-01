@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { IAppState, ILot, IOrder } from "../types";
+import { FormErrors, IAppState, ILot, IOrder, IOrderForm } from "../types";
 import { LotItem } from "./LotItem";
 import { Model } from "./base/Model";
 
@@ -12,6 +12,7 @@ export class AppState extends Model<IAppState> {
     phone: '',
     items: []
   };
+  formErrors: FormErrors = {};
 
   setCatalog(items: ILot[]) {
     this.catalog = items.map(item => new LotItem(item, this.events));
@@ -51,4 +52,25 @@ export class AppState extends Model<IAppState> {
       this.catalog.find(it => it.id === id).clearBid();
     });
   }
+
+  validateOrder() {
+    const errors: typeof this.formErrors = {};
+    if (!this.order.email) {
+        errors.email = 'Необходимо указать email';
+    }
+    if (!this.order.phone) {
+        errors.phone = 'Необходимо указать телефон';
+    }
+    this.formErrors = errors;
+    this.events.emit('formErrors:change', this.formErrors);
+    return Object.keys(errors).length === 0;
+}
+
+  setOrderField(field: keyof IOrderForm, value: string) {
+    this.order[field] = value;
+
+    if (this.validateOrder()) {
+        this.events.emit('order:ready', this.order);
+    }
+  } 
 }

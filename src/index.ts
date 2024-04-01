@@ -4,7 +4,7 @@ import {AuctionAPI} from "./components/AuctionAPI";
 import {API_URL, CDN_URL} from "./utils/constants";
 import {EventEmitter} from "./components/base/events";
 import { LotItem } from './components/LotItem';
-import { CatalogChangeEvent } from './types';
+import { CatalogChangeEvent, IOrderForm } from './types';
 import { cloneTemplate, createElement, ensureElement } from './utils/utils';
 import { Page } from './components/Page';
 import { Modal } from './components/common/Modal';
@@ -15,6 +15,8 @@ import { AuctionStatus } from './components/AuctionStatus';
 import { BidItem } from './components/BidItem';
 import { Basket } from './components/Basket';
 import { Tabs } from './components/Tabs';
+import { Order } from './components/Order';
+import { Success } from './components/common/Success';
 
 const events = new EventEmitter();
 const api = new AuctionAPI(CDN_URL, API_URL);
@@ -33,6 +35,8 @@ const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#bid');
 const tabsTemplate = ensureElement<HTMLTemplateElement>('#tabs');
 const soldTemplate = ensureElement<HTMLTemplateElement>('#sold');
 const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
+const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
+const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
 // Модель данных приложения
 const appData = new AppState({}, events);
@@ -51,6 +55,7 @@ const tabs = new Tabs(cloneTemplate(tabsTemplate), {
         else events.emit('bids:open');
     }
 });
+const order = new Order(cloneTemplate(orderTemplate), events);
 
 // Дальше идет бизнес-логика
 // Поймали событие, сделали что нужно
@@ -100,6 +105,51 @@ events.on('basket:open', () => {
             basket.render()
         ])
     });
+});
+
+// Отправлена форма заказа
+events.on('order:submit', () => {
+    api.orderLots(appData.order)
+        .then(() => {
+            const success = new Success(cloneTemplate(successTemplate), {
+                onClick: () => {
+                    modal.close();
+                    appData.clearBasket();
+                    events.emit('auction:changed');
+                }
+            });
+
+            modal.render({
+                content: success.render({})
+            });
+        })
+        .catch(err => {
+            console.error(err);
+        });
+});
+
+// Открыть форму заказа
+events.on('order:open', () => {
+    modal.render({
+        content: order.render({
+            phone: '',
+            email: '',
+            valid: false,
+            errors: []
+        })
+    });
+});
+
+// Изменилось состояние валидации формы
+events.on('formErrors:change', (errors: Partial<IOrderForm>) => {
+    const { email, phone } = errors;
+    order.valid = !email && !phone;
+    order.errors = Object.values({phone, email}).filter(i => !!i).join('; ');
+});
+
+// Изменилось одно из полей
+events.on(/^order\..*:change/, (data: { field: keyof IOrderForm, value: string }) => {
+    appData.setOrderField(data.field, data.value);
 });
 
 // Изменен открытый выбранный лот
