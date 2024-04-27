@@ -1,6 +1,4 @@
-# Проектная работа "Оно тебе надо"
-
-Стек: HTML, SCSS, TS, Webpack
+# Проект "Оно тебе надо"
 
 Структура проекта:
 - src/ — исходные файлы проекта
@@ -41,6 +39,12 @@ npm run build
 yarn build
 ```
 
-## [Макет](https://www.figma.com/file/qnH5tALa9F1emPaWzyfrRQ/%D0%9E%D0%BD%D0%BE-%D1%82%D0%B5%D0%B1%D0%B5-%D0%BD%D0%B0%D0%B4%D0%BE?type=design&node-id=1-128&mode=design&t=jZi41UEue0FYhTle-0)
+## Стек 
+- HTML 
+- SCSS
+- TS
+- Webpack
 
-запросы на https://onotebenado-api.nomoreparties.co
+## Дополнительная информация
+- Адрес сервера, к которому обращаюсь за данными через API - https://onotebenado-api.nomoreparties.co
+- [Макет](https://www.figma.com/file/qnH5tALa9F1emPaWzyfrRQ/%D0%9E%D0%BD%D0%BE-%D1%82%D0%B5%D0%B1%D0%B5-%D0%BD%D0%B0%D0%B4%D0%BE?type=design&node-id=1-128&mode=design&t=jZi41UEue0FYhTle-0)
